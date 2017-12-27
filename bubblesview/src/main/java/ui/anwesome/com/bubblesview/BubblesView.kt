@@ -10,15 +10,14 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 class BubblesView(ctx:Context):View(ctx) {
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    val renderer = BubblesRenderer(this)
+    val touchHandler = BubbleTouchHandler(renderer)
     override fun onDraw(canvas:Canvas) {
-
+        canvas.drawColor(Color.parseColor("#212121"))
+        renderer.render(canvas,paint)
     }
     override fun onTouchEvent(event:MotionEvent):Boolean {
-        when(event.action) {
-            MotionEvent.ACTION_DOWN -> {
-
-            }
-        }
+        touchHandler.handleTouch(event)
         return true
     }
     data class Vector(var x:Float,var y:Float) {
@@ -99,6 +98,7 @@ class BubblesView(ctx:Context):View(ctx) {
         }
         fun startBubbling(x:Float,y:Float) {
             container?.startBubbling(x,y)
+            animator?.startUpdating()
         }
         private fun update() {
             animator.update {
@@ -110,9 +110,12 @@ class BubblesView(ctx:Context):View(ctx) {
                 }
             }
         }
+        fun startUpdating() {
+            container?.startUpdating {
+            }
+        }
         fun updateMode(mode:Int) {
             this.mode = mode
-            animator.startUpdating()
         }
     }
     data class BubbleAnimator(var view:BubblesView,var animated:Boolean = false) {
@@ -137,6 +140,20 @@ class BubblesView(ctx:Context):View(ctx) {
             if(!animated) {
                 animated = true
                 view.postInvalidate()
+            }
+        }
+    }
+    data class BubbleTouchHandler(var renderer:BubblesRenderer) {
+        fun handleTouch(event:MotionEvent) {
+            when(event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    renderer.startBubbling(event.x,event.y)
+                    renderer.updateMode(0)
+                }
+                MotionEvent.ACTION_UP -> {
+                    renderer.updateMode(1)
+                    renderer.startUpdating()
+                }
             }
         }
     }
