@@ -30,7 +30,7 @@ class BubblesView(ctx:Context):View(ctx) {
     data class PhysicsBody(var position:Vector,var velocity:Vector = Vector(0f,0f)) {
         fun update(acceleration:Vector,stopcb: () -> Unit) {
             velocity.add(acceleration)
-            position.add(acceleration)
+            position.add(velocity)
             if(velocity.x == 0f && velocity.y == 0f) {
                 stopcb()
             }
@@ -43,7 +43,7 @@ class BubblesView(ctx:Context):View(ctx) {
         var body = PhysicsBody(Vector(x,y))
         fun update(stopcb: () -> Unit) {
             body.update(Vector(0f,3f),stopcb)
-            size = body.velocity.y
+            size = Math.abs(body.velocity.y)
         }
         fun draw(canvas:Canvas,paint:Paint) {
             paint.color = Color.WHITE
@@ -79,9 +79,10 @@ class BubblesView(ctx:Context):View(ctx) {
             startcb()
         }
         fun draw(canvas:Canvas,paint:Paint) {
-            bubbles.forEach { it ->
+            bubbles.forEach {
                 it.draw(canvas, paint)
             }
+            currBubble?.draw(canvas,paint)
         }
     }
     data class BubblesRenderer(var view:BubblesView,var time:Int = 0) {
@@ -95,6 +96,7 @@ class BubblesView(ctx:Context):View(ctx) {
                 container = BubbleContainer(w,h)
             }
             container?.draw(canvas,paint)
+            update()
             time++
         }
         fun startBubbling(x:Float,y:Float) {
