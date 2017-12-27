@@ -19,4 +19,10 @@ class BubblesView(ctx:Context):View(ctx) {
         }
         return true
     }
+    data class Vector(var x:Float,var y:Float) {
+        fun add(v:Vector) {
+            x+=v.x
+            y+=v.y
+        }
+    }
 }
