@@ -3,6 +3,7 @@ package ui.anwesome.com.bubblesview
 /**
  * Created by anweshmishra on 27/12/17.
  */
+import android.app.Activity
 import android.view.*
 import android.graphics.*
 import android.content.*
@@ -155,6 +156,12 @@ class BubblesView(ctx:Context):View(ctx) {
                     renderer.startUpdating()
                 }
             }
+        }
+    }
+    companion object {
+        fun create(activity:Activity) {
+            val view = BubblesView(activity)
+            activity.setContentView(view)
         }
     }
 }
