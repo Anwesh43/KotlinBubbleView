@@ -71,7 +71,7 @@ class BubblesView(ctx:Context):View(ctx) {
             }
         }
         fun startBubbling(x:Float,y:Float) {
-            currBubble = Bubble()
+            currBubble = Bubble(x,y)
         }
         fun startUpdating(startcb:()->Unit) {
             bubbles.add(currBubble)
@@ -87,7 +87,7 @@ class BubblesView(ctx:Context):View(ctx) {
     data class BubblesRenderer(var view:BubblesView,var time:Int = 0) {
         var container:BubbleContainer?=null
         var mode = 0
-        var animated = false
+        val animator = BubbleAnimator(view)
         fun render(canvas: Canvas,paint:Paint) {
             if(time == 0) {
                 val w = canvas.width.toFloat()
@@ -101,15 +101,39 @@ class BubblesView(ctx:Context):View(ctx) {
             container?.startBubbling(x,y)
         }
         private fun update() {
-            when(mode) {
-                0 -> container?.update {
-                    animated = false
+            animator.update {
+                when(mode) {
+                    1 -> container?.update {
+                        animator.stop()
+                    }
+                    0 -> container?.increaseSize()
                 }
-                1 -> container?.increaseSize()
             }
         }
         fun updateMode(mode:Int) {
             this.mode = mode
+            animator.startUpdating()
+        }
+    }
+    data class BubbleAnimator(var view:BubblesView,var animated:Boolean = false) {
+        fun update(updatecb:()->Unit) {
+            if(animated) {
+                updatecb()
+                try {
+                    Thread.sleep(50)
+                    view.invalidate()
+                }
+                catch(ex:Exception) {
+
+                }
+            }
+        }
+        fun stop() {
+            if(animated) {
+                animated = false
+            }
+        }
+        fun startUpdating() {
             if(!animated) {
                 animated = true
                 view.postInvalidate()
