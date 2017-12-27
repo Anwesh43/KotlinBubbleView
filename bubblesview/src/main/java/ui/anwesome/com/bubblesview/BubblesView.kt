@@ -25,4 +25,27 @@ class BubblesView(ctx:Context):View(ctx) {
             y+=v.y
         }
     }
+    data class PhysicsBody(var position:Vector,var velocity:Vector = Vector(0f,0f)) {
+        fun update(acceleration:Vector) {
+            velocity.add(acceleration)
+            position.add(acceleration)
+        }
+        fun update_velocity(v:Vector) {
+            this.velocity = v
+        }
+    }
+    data class Bubble(var x:Float,var y:Float,var size:Float = 0f) {
+        var body = PhysicsBody(Vector(x,y))
+        fun update() {
+            size--
+        }
+        fun draw(canvas:Canvas,paint:Paint) {
+            paint.color = Color.WHITE
+            canvas.drawCircle(body.position.x,body.position.y,size/2,paint)
+        }
+        fun increaseSize() {
+            size++
+            body.update_velocity(Vector(0f,size))
+        }
+    }
 }
