@@ -6,6 +6,8 @@ package ui.anwesome.com.bubblesview
 import android.view.*
 import android.graphics.*
 import android.content.*
+import java.util.concurrent.ConcurrentLinkedQueue
+
 class BubblesView(ctx:Context):View(ctx) {
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     override fun onDraw(canvas:Canvas) {
@@ -26,9 +28,12 @@ class BubblesView(ctx:Context):View(ctx) {
         }
     }
     data class PhysicsBody(var position:Vector,var velocity:Vector = Vector(0f,0f)) {
-        fun update(acceleration:Vector) {
+        fun update(acceleration:Vector,stopcb: () -> Unit) {
             velocity.add(acceleration)
             position.add(acceleration)
+            if(velocity.x == 0f && velocity.y == 0f) {
+                stopcb()
+            }
         }
         fun update_velocity(v:Vector) {
             this.velocity = v
@@ -36,7 +41,7 @@ class BubblesView(ctx:Context):View(ctx) {
     }
     data class Bubble(var x:Float,var y:Float,var size:Float = 0f) {
         var body = PhysicsBody(Vector(x,y))
-        fun update() {
+        fun update(stopcb: () -> Unit) {
             size--
         }
         fun draw(canvas:Canvas,paint:Paint) {
@@ -46,6 +51,33 @@ class BubblesView(ctx:Context):View(ctx) {
         fun increaseSize() {
             size++
             body.update_velocity(Vector(0f,size))
+        }
+    }
+    data class BubbleContainer(var w:Float,var h:Float) {
+        var bubbles:ConcurrentLinkedQueue<Bubble> = ConcurrentLinkedQueue()
+        var currBubble:Bubble ?= null
+        fun increaseSize() {
+            currBubble?.increaseSize()
+        }
+        fun update(stopcb:()->Unit) {
+            bubbles.forEach {
+                it.update {
+                    bubbles.remove(it)
+                    if(bubbles.size == 0) {
+                        stopcb()
+                    }
+                }
+            }
+        }
+        fun startUpdating(startcb:()->Unit) {
+            bubbles.add(currBubble)
+            currBubble = null
+            startcb()
+        }
+        fun draw(canvas:Canvas,paint:Paint) {
+            bubbles.forEach { it ->
+                it.draw(canvas, paint)
+            }
         }
     }
 }
